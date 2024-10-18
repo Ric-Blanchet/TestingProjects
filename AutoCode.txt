@@ -1,0 +1,85 @@
+package org.example;
+
+import java.awt.Robot;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
+import java.util.Random;
+import javax.swing.JFrame;
+import java.awt.event.KeyListener;
+
+public class Main {
+
+    // Reference cooldown periods in milliseconds for each key
+    private static final int REFERENCE_W1 = 5000;
+    private static final int REFERENCE_2 = 20000;
+    private static final int REFERENCE_3 = 4000;
+    private static final int REFERENCE_4 = 4500;
+    private static final int DELTA = 1000; // Maximum variation for cooldown
+
+    private static final Random RANDOM = new Random();
+
+    private static boolean running = true; // Toggle flag
+
+    public static void RunApplication() {
+        try {
+            Robot robot = new Robot();
+
+            // Thread for right-clicking
+            new Thread(() -> {
+                while (true) {
+                    try {
+                        robot.mousePress(InputEvent.BUTTON3_DOWN_MASK);
+                        robot.mouseRelease(InputEvent.BUTTON3_DOWN_MASK);
+                        Thread.sleep(1000); // Adjust this if needed
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            }).start();
+
+            // Threads for other key pressing
+            new Thread(() -> runKeyWithRandomCooldown(robot, KeyEvent.VK_2, REFERENCE_2)).start();
+            new Thread(() -> runKeyWithRandomCooldown(robot, KeyEvent.VK_3, REFERENCE_3)).start();
+            new Thread(() -> runKeyWithRandomCooldown(robot, KeyEvent.VK_4, REFERENCE_4)).start();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static void runKeysWithRandomCooldown(Robot robot, int keyCode1, int keyCode2, int referenceCooldown) {
+        while (true) {
+            try {
+                int cooldown = getRandomCooldown(referenceCooldown);
+                robot.keyPress(keyCode1);
+                robot.keyPress(keyCode2);
+                robot.keyRelease(keyCode1);
+                robot.keyRelease(keyCode2);
+                Thread.sleep(cooldown);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private static void runKeyWithRandomCooldown(Robot robot, int keyCode, int referenceCooldown) {
+        while (true) {
+            try {
+                int cooldown = getRandomCooldown(referenceCooldown);
+                robot.keyPress(keyCode);
+                robot.keyRelease(keyCode);
+                Thread.sleep(cooldown);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private static int getRandomCooldown(int referenceCooldown) {
+        return referenceCooldown + RANDOM.nextInt(DELTA * 2 + 1) - DELTA;
+    }
+
+    public static void main(String[] args) {
+        RunApplication();
+    }
+}
